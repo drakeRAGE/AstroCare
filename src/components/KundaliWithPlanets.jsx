@@ -201,7 +201,7 @@ export default function KundaliPage() {
                                 <button onClick={downloadCanvasPNG} className="w-full px-3 py-2 rounded-full bg-gradient-to-r from-orange-500 to-yellow-400 text-white">Download Chart PNG</button>
                                 <button onClick={copyJson} className="w-full px-3 py-2 rounded-full border border-white/10 text-sm">{copied ? "Copied ✓" : "Copy planets JSON"}</button>
                                 <button onClick={saveSampleJson} className="w-full px-3 py-2 rounded-full border border-white/10 text-sm">Save sample JSON</button>
-                                <button onClick={() => alert("This demo does not call a live API. In production you can call your ephemeris API and update the chart mapping.")} className="w-full px-3 py-2 rounded-full text-sm">Fetch live planetary positions (demo)</button>
+                                <button onClick={() => alert("This demo does not call a live API. In production we can call your ephemeris API and update the chart mapping.")} className="w-full px-3 py-2 rounded-full text-sm">Fetch live planetary positions (demo)</button>
                             </div>
                         </div>
 
