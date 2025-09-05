@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
 import AstroCare from './components/Home'
-import Kundali from './components/Kundali'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import KundaliPage from './components/KundaliWithPlanets'
