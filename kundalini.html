@@ -1,0 +1,289 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Kundali with Planets</title>
+  <style>
+    /* minimal styles — keep your external /less if you prefer */
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      padding: 12px;
+    }
+
+    #container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid #eee;
+      background: #fff;
+    }
+
+    .hint {
+      color: #666;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <canvas id="canvas" width="600" height="600"></canvas>
+    <div class="hint">Click a house to log its planets (demo). To fetch live data, see fetchPlanetsFromAPI() in the
+      script.</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    window.addEventListener('load', init);
+    window.addEventListener('resize', draw);
+
+    function init() {
+      // Demo dummy planet placements. Change values as you like.
+      // Each key is house number (1..12). Values are arrays of planet names.
+      window.planetsInHouse = {
+        1: ['Sun', 'Rahu'],
+        2: ['Moon'],
+        3: ['Mars', 'Mercury'],
+        4: ['Jupiter'],
+        5: ['Venus'],
+        6: ['Saturn'],
+        7: ['Ketu'],
+        8: ['Mercury'],
+        9: ['Jupiter'],
+        10: ['Saturn'],
+        11: ['Mars'],
+        12: ['Venus', 'Moon']
+      };
+
+      // House centers (matching your earlier text coordinates)
+      window.houseCenters = {
+        1: { x: 50, y: 25 },
+        2: { x: 25, y: 12 },
+        3: { x: 12, y: 25 },
+        4: { x: 25, y: 50 },
+        5: { x: 12, y: 75 },
+        6: { x: 25, y: 88 },
+        7: { x: 50, y: 75 },
+        8: { x: 75, y: 88 },
+        9: { x: 88, y: 75 },
+        10: { x: 75, y: 50 },
+        11: { x: 88, y: 25 },
+        12: { x: 75, y: 12 }
+      };
+
+      // Redraw and attach click handler
+      draw();
+      canvas.addEventListener('click', onCanvasClick);
+    }
+
+    /* ---------- Drawing ---------- */
+
+    function draw() {
+      // responsive canvas sizing: maintain square drawing area based on container width
+      const parentW = canvas.parentElement.offsetWidth;
+      canvas.style.width = (parentW - 10) + 'px';
+      canvas.style.height = (parentW - 10) + 'px';
+      // keep internal resolution to device pixels for crispness
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      const size = 600; // logical pixel size
+      canvas.width = size * devicePixelRatio;
+      canvas.height = size * devicePixelRatio;
+      canvas.style.width = (parentW - 10) + 'px';
+      canvas.style.height = (parentW - 10) + 'px';
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); // scale drawing
+
+      // clear
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // draw houses (re-using your functions scaled to 100x100 grid)
+      drawTriangleHouse(ctx, 50, 0, 0, 50, 25, 25); // adjust as needed (kept your original shapes)
+      // We'll re-draw the full kundali using your earlier coordinates (kept consistent)
+      drawSquareHouse(ctx, 50, 0, 75, 25, 50, 50, 25, 25);
+      setText(ctx, 50, 25, "1")
+
+      drawTriangleHouse(ctx, 0, 0, 50, 0, 25, 25);
+      setText(ctx, 25, 12, "2")
+
+      drawTriangleHouse(ctx, 0, 0, 25, 25, 0, 50);
+      setText(ctx, 12, 25, "3")
+
+      drawSquareHouse(ctx, 25, 25, 50, 50, 25, 75, 0, 50);
+      setText(ctx, 25, 50, "4")
+
+      drawTriangleHouse(ctx, 0, 50, 25, 75, 0, 100);
+      setText(ctx, 12, 75, "5")
+
+      drawTriangleHouse(ctx, 25, 75, 50, 100, 0, 100);
+      setText(ctx, 25, 88, "6")
+
+      drawSquareHouse(ctx, 50, 50, 75, 75, 50, 100, 25, 75);
+      setText(ctx, 50, 75, "7")
+
+      drawTriangleHouse(ctx, 75, 75, 100, 100, 50, 100);
+      setText(ctx, 75, 88, "8")
+
+      drawTriangleHouse(ctx, 75, 75, 100, 50, 100, 100);
+      setText(ctx, 88, 75, "9")
+
+      drawSquareHouse(ctx, 75, 25, 100, 50, 75, 75, 50, 50);
+      setText(ctx, 75, 50, "10")
+
+      drawTriangleHouse(ctx, 100, 0, 100, 50, 75, 25);
+      setText(ctx, 88, 25, "11")
+
+      drawTriangleHouse(ctx, 50, 0, 100, 0, 75, 25);
+      setText(ctx, 75, 12, "12")
+
+      // now draw planets
+      drawAllPlanets(ctx);
+    }
+
+    /* Draw helper functions (adapted from yours) */
+    function drawTriangleHouse(context, x1, y1, x2, y2, x3, y3) {
+      context.beginPath();
+      context.moveTo(x1 * canvas.width / 100, y1 * canvas.height / 100);
+      context.lineTo(x2 * canvas.width / 100, y2 * canvas.height / 100);
+      context.lineTo(x3 * canvas.width / 100, y3 * canvas.height / 100);
+      context.closePath();
+      context.lineWidth = 1;
+      context.strokeStyle = '#666666';
+      context.stroke();
+    }
+
+    function drawSquareHouse(context, x1, y1, x2, y2, x3, y3, x4, y4) {
+      context.beginPath();
+      context.moveTo(x1 * canvas.width / 100, y1 * canvas.height / 100);
+      context.lineTo(x2 * canvas.width / 100, y2 * canvas.height / 100);
+      context.lineTo(x3 * canvas.width / 100, y3 * canvas.height / 100);
+      context.lineTo(x4 * canvas.width / 100, y4 * canvas.height / 100);
+      context.closePath();
+      context.lineWidth = 1;
+      context.strokeStyle = '#666666';
+      context.stroke();
+    }
+
+    function setText(context, x, y, maintext) {
+      context.font = "16px Comic Sans MS";
+      context.fillStyle = "red";
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(maintext, x * canvas.width / 100, y * canvas.width / 100);
+    }
+
+    /* ---------- Planet drawing ---------- */
+    function drawAllPlanets(context) {
+      context.save();
+      context.font = "12px Arial";
+      context.textAlign = 'center';
+      context.fillStyle = "#0b3d91"; // planet text color
+      for (const [houseStr, center] of Object.entries(window.houseCenters)) {
+        const house = parseInt(houseStr, 10);
+        const planets = (window.planetsInHouse && window.planetsInHouse[house]) || [];
+        if (planets.length === 0) continue;
+
+        // Draw each planet on its own line, below the house number
+        const startX = center.x * canvas.width / 100;
+        let startY = (center.y * canvas.height / 100) + 20; // offset below house number
+        const lineHeight = 14;
+        planets.forEach((p, idx) => {
+          context.fillText(p, startX, startY + idx * lineHeight);
+        });
+      }
+      context.restore();
+    }
+
+    /* ---------- Click handling (demo) ---------- */
+    function onCanvasClick(e) {
+      // map click to logical 100x100 grid coordinates
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const cx = (e.clientX - rect.left) * scaleX / (window.devicePixelRatio || 1);
+      const cy = (e.clientY - rect.top) * scaleY / (window.devicePixelRatio || 1);
+
+      // convert to percent coordinates (0..100)
+      const px = (cx / canvas.width) * 100 * (window.devicePixelRatio || 1);
+      const py = (cy / canvas.height) * 100 * (window.devicePixelRatio || 1);
+
+      // Find nearest house center (simple distance check)
+      let nearest = null;
+      let bestDist = Infinity;
+      for (const [houseStr, c] of Object.entries(window.houseCenters)) {
+        const dx = px - c.x;
+        const dy = py - c.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < bestDist) { bestDist = d; nearest = houseStr; }
+      }
+
+      if (nearest) {
+        const houseNum = parseInt(nearest, 10);
+        console.log('House', houseNum, 'planets =', window.planetsInHouse[houseNum] || []);
+        alert('House ' + houseNum + '\nPlanets: ' + ((window.planetsInHouse[houseNum] || []).join(', ') || '—'));
+      }
+    }
+
+    /* ---------- API fetch example (stub) ---------- */
+    /*
+     Example: FreeAstrologyAPI / Prokerala / AstrologyAPI provide endpoints for planet positions.
+     You will need to register, get an API key, and POST the correct birth params (date/time/lat/lon/tz).
+     Below is an example skeleton for how to fetch and then map planets to houses.
+    
+     NOTE: This is only a template — update the URL, request body and headers to match the provider you choose.
+     Example doc refs: FreeAstrologyAPI planets endpoint, Prokerala API docs. :contentReference[oaicite:1]{index=1}
+    */
+    async function fetchPlanetsFromAPI(birthData) {
+      // birthData example:
+      // { day: 15, month: 8, year: 1995, hour: 4, min: 30, lat: 28.6139, lon: 77.2090, tzone: 5.5 }
+      try {
+        const apiUrl = 'https://json.freeastrologyapi.com/planets'; // example endpoint — check provider
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer wbPjx9BWqj9jPjTWfSjGt4TAM5e8nF9M34B3abgR' // if required
+          },
+          body: JSON.stringify(birthData)
+        });
+        if (!res.ok) throw new Error('API error: ' + res.status);
+        const json = await res.json();
+
+        console.log('API response', json);
+        // json structure depends on API — adapt parsing below:
+        // Example transformation: map API planets -> house number
+        const mapping = {}; // house -> [planet,...]
+        if (json && Array.isArray(json.planets)) {
+          json.planets.forEach(p => {
+            const house = p.house || p.h; // depends on API
+            if (!mapping[house]) mapping[house] = [];
+            mapping[house].push(p.name || p.planet);
+          });
+        } else if (json && json.planets_by_house) {
+          // adapt for providers that return planets grouped by house
+          Object.assign(mapping, json.planets_by_house);
+        }
+        // set global and redraw
+        window.planetsInHouse = mapping;
+        draw();
+      } catch (err) {
+        console.error('fetchPlanetsFromAPI error', err);
+        alert('Could not fetch planets: ' + err.message);
+      }
+    }
+
+    /* For demo: you can call fetchPlanetsFromAPI with real birth data:
+    fetchPlanetsFromAPI({day:10,month:1,year:1990,hour:12,min:0,lat:28.61,lon:77.20,tzone:5.5});
+    */
+
+  </script>
+</body>
+
+</html>
