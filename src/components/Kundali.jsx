@@ -1,14 +1,13 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 
 /**
- * Kundali.jsx
- * React + Tailwind component — responsive canvas drawing with correct DPR handling
- * Fixes: planets not visible at certain zoom levels by using a fixed logical drawing size (size)
- * and mapping all coordinates / click events to that logical size. Fonts and positions scale
- * with the logical size so the layout stays consistent across zoom / DPR / container resizing.
+ * Responsive Kundali + Page
+ * - Keeps the original drawing logic of Kundali (minimal changes) but makes layout responsive
+ * - Side panel becomes collapsible on small screens
+ * - Canvas kept square and responsive via container + Tailwind; drawing still uses logical SIZE
  */
 
-const SIZE = 600; // logical drawing size in px (0..SIZE corresponds to 0..100%)
+const SIZE = 600; // logical drawing size in px
 
 const PLANETS = {
     1: ["Sun", "Rahu"],
@@ -40,9 +39,9 @@ const HOUSE_CENTERS = {
     12: { x: 75, y: 12 },
 };
 
-export default function Kundali() {
+export default function Kundali({ planets = PLANETS }) {
     const canvasRef = useRef(null);
-    const planetsRef = useRef(PLANETS);
+    const planetsRef = useRef(planets);
     const houseCentersRef = useRef(HOUSE_CENTERS);
 
     // helper: percent (0..100) -> logical px (0..SIZE)
@@ -73,7 +72,6 @@ export default function Kundali() {
     };
 
     const setText = (ctx, x, y, text) => {
-        // scale font relative to SIZE so it looks the same when canvas scales via CSS
         ctx.font = `${Math.round(SIZE * 0.026)}px Comic Sans MS`;
         ctx.fillStyle = "red";
         ctx.textAlign = "center";
@@ -94,7 +92,7 @@ export default function Kundali() {
             if (planets.length === 0) continue;
 
             const startX = p2x(center.x);
-            let startY = p2y(center.y) + (SIZE * 0.033); // offset below house number
+            let startY = p2y(center.y) + SIZE * 0.033; // offset below house number
             const lineHeight = SIZE * 0.023;
             planets.forEach((p, idx) => {
                 ctx.fillText(p, startX, startY + idx * lineHeight);
@@ -109,23 +107,23 @@ export default function Kundali() {
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
 
-        // Responsive CSS size: width = container width (minus small padding)
-        const parentW = canvas.parentElement.offsetWidth;
-        canvas.style.width = `${parentW - 8}px`;
-        canvas.style.height = `${parentW - 8}px`;
+        // Responsive: let CSS determine display size (we also set CSS classes on canvas)
+        // maintain pixel-ratio corrected internal buffer
+        const rect = canvas.getBoundingClientRect();
+        const cssWidth = rect.width || canvas.parentElement.offsetWidth || SIZE;
 
-        // Pixel ratio handling: keep internal resolution = SIZE * DPR, but draw in logical coords 0..SIZE
+        // Pixel ratio handling: internal resolution = SIZE * DPR
         const dpr = window.devicePixelRatio || 1;
         canvas.width = Math.round(SIZE * dpr);
         canvas.height = Math.round(SIZE * dpr);
 
-        // Map logical coordinates to device pixels with a single transform
+        // Use transform to map logical SIZE -> device pixels
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         // Clear logical drawing area
         ctx.clearRect(0, 0, SIZE, SIZE);
 
-        // Draw houses using logical SIZE coordinates
+        // Draw houses (logical coords)
         drawTriangleHouse(ctx, 50, 0, 0, 50, 25, 25);
 
         drawSquareHouse(ctx, 50, 0, 75, 25, 50, 50, 25, 25);
@@ -170,7 +168,6 @@ export default function Kundali() {
 
     useEffect(() => {
         draw();
-        // redraw on resize
         const onResize = () => draw();
         window.addEventListener("resize", onResize);
         return () => window.removeEventListener("resize", onResize);
@@ -182,10 +179,7 @@ export default function Kundali() {
         if (!canvas) return;
         const rect = canvas.getBoundingClientRect();
 
-        // rect.width is the CSS width in px (what user sees)
         const cssWidth = rect.width;
-
-        // scale factor from CSS px -> logical SIZE px
         const scale = SIZE / cssWidth;
 
         const cx = (e.clientX - rect.left) * scale;
@@ -214,16 +208,19 @@ export default function Kundali() {
     };
 
     return (
-        <div className="max-w-[600px] mx-auto p-3">
-            <canvas
-                ref={canvasRef}
-                onClick={onCanvasClick}
-                className="border border-gray-200 bg-white w-full h-auto block"
-                role="img"
-                aria-label="Kundali chart"
-                style={{ touchAction: "manipulation" }}
-            />
-            <div className="text-gray-600 text-sm mt-2">Click a house to log its planets (demo). To fetch live data, call your API and update planetsRef.current then call draw().</div>
+        <div className="w-full flex justify-center">
+            {/* container keeps max width and always square */}
+            <div className="w-full max-w-[600px] p-3">
+                <canvas
+                    ref={canvasRef}
+                    onClick={onCanvasClick}
+                    className="border border-gray-200 bg-white w-full aspect-square block rounded-md"
+                    role="img"
+                    aria-label="Kundali chart"
+                    style={{ touchAction: "manipulation" }}
+                />
+            </div>
         </div>
     );
 }
+

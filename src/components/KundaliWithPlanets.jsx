@@ -23,9 +23,9 @@ export default function KundaliPage() {
     const [planetsMap, setPlanetsMap] = useState(DEMO_PLANETS);
     const [selectedHouse, setSelectedHouse] = useState(null);
     const [copied, setCopied] = useState(false);
+    const [panelOpen, setPanelOpen] = useState(true); // controls right-side panel on small screens
 
     useEffect(() => {
-        console.log("[KundaliPage] mounted");
         if (copied) {
             const id = setTimeout(() => setCopied(false), 2000);
             return () => clearTimeout(id);
@@ -33,17 +33,12 @@ export default function KundaliPage() {
     }, [copied]);
 
     function findKundaliCanvas() {
-        // Prefer aria-label, fallback to first canvas
-        return (
-            document.querySelector('canvas[aria-label="Kundali chart"]') ||
-            document.querySelector("canvas")
-        );
+        return document.querySelector('canvas[aria-label="Kundali chart"]') || document.querySelector("canvas");
     }
 
     function downloadCanvasPNG() {
         const canvas = findKundaliCanvas();
         if (!canvas) {
-            console.warn("[KundaliPage] Kundali canvas not found");
             alert("Kundali canvas not found on the page.");
             return;
         }
@@ -64,7 +59,6 @@ export default function KundaliPage() {
                 URL.revokeObjectURL(url);
             }, "image/png");
         } catch (err) {
-            console.error("[KundaliPage] downloadCanvasPNG error", err);
             alert("Export failed: " + err.message);
         }
     }
@@ -72,7 +66,6 @@ export default function KundaliPage() {
     function copyJson() {
         const json = JSON.stringify(planetsMap, null, 2);
         if (!navigator.clipboard) {
-            // fallback
             const ta = document.createElement("textarea");
             ta.value = json;
             document.body.appendChild(ta);
@@ -90,10 +83,7 @@ export default function KundaliPage() {
         navigator.clipboard
             .writeText(json)
             .then(() => setCopied(true))
-            .catch((err) => {
-                console.warn("Clipboard write failed", err);
-                alert("Copy failed — permission denied or unsupported browser.");
-            });
+            .catch(() => alert("Copy failed — permission denied or unsupported browser."));
     }
 
     function saveSampleJson() {
@@ -109,60 +99,62 @@ export default function KundaliPage() {
             a.remove();
             URL.revokeObjectURL(url);
         } catch (err) {
-            console.error("saveSampleJson error", err);
             alert("Save failed: " + err.message);
         }
     }
 
     function handleHouseClick(houseNum) {
         setSelectedHouse(houseNum);
-        console.log("[KundaliPage] house selected", houseNum);
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-orange-50 to-yellow-200 text-gray-800 font-sans">
-            <Navbar />
+        <div className="min-h-screen pt-24 bg-gradient-to-br from-yellow-100 via-orange-50 to-yellow-200 text-gray-800 font-sans">
+            <style>{`
+        /* --- Animations & small utilities --- */
+        @keyframes float { 0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)} }
+        @keyframes float-slow { 0%{transform:translateY(0)}50%{transform:translateY(-8px)}100%{transform:translateY(0)} }
+        @keyframes pulseGlow { 0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.04)} }
+        @keyframes fadeUp {from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        .fade-up{animation:fadeUp .9s ease both}
+        .float{animation:float 5s ease-in-out infinite}
+        .float-slow{animation:float-slow 7s ease-in-out infinite}
+        .pulseGlow{animation:pulseGlow 6s ease-in-out infinite}
+        .glass { background: rgba(255,255,255,0.18); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+        .glass-strong { background: rgba(255,255,255,0.08); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 
-            <header className="pt-20 pb-8">
-                <div className="max-w-6xl mx-auto px-6">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-orange-800">Your Kundali</h1>
-                    <p className="mt-2 text-gray-700 max-w-2xl">
-                        Interactive Kundali viewer — main focus is the chart. Use the side panel for details,
-                        export & quick actions.
-                    </p>
-                </div>
-            </header>
-
+        /* responsive small tweaks */
+        @media (max-width:640px) {
+          .hero-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
             <main className="max-w-7xl mx-auto px-6 pb-20">
-                <div className="grid md:grid-cols-3 gap-8 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
                     <div className="md:col-span-2">
                         <div className="glass rounded-2xl p-6 shadow-lg border border-white/10">
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-3">
                                 <div>
                                     <h2 className="text-lg font-semibold text-orange-700">Kundali Viewer</h2>
                                     <div className="text-sm text-gray-600">Interactive chart — click houses on the chart to view planets (canvas handles clicks).</div>
                                 </div>
 
-                                <div className="flex items-center gap-3">
-                                    <button onClick={downloadCanvasPNG} className="px-4 py-2 rounded-full bg-orange-500 text-white text-sm hover:scale-105 transition">Download PNG</button>
-                                    <button onClick={() => (window.location.href = "/")} className="px-4 py-2 rounded-full border border-white/20 text-sm">Back Home</button>
+                                <div className="flex items-center gap-3 w-full md:w-auto">
+                                    <button onClick={downloadCanvasPNG} className="w-full md:w-auto px-4 py-2 rounded-full bg-orange-500 text-white text-sm hover:scale-105 transition">Download PNG</button>
+                                    <button onClick={() => (window.location.href = "/")} className="w-full md:w-auto px-4 py-2 rounded-full border border-white/20 text-sm">Back Home</button>
                                 </div>
                             </div>
 
                             <div className="w-full flex justify-center">
                                 <div className="w-full max-w-[720px]">
-                                    <Kundali />
+                                    <Kundali planets={planetsMap} />
                                 </div>
                             </div>
 
-                            <div className="mt-4 text-xs text-gray-500">
-                                Note: the chart is rendered client-side. For accurate Kundali you must pass exact birth coordinates
-                                + timezone and call a planetary ephemeris API (not enabled in demo).
-                            </div>
+                            <div className="mt-4 text-xs text-gray-500">Note: the chart is rendered client-side. For accurate Kundali you must pass exact birth coordinates + timezone and call a planetary ephemeris API (not enabled in demo).</div>
                         </div>
                     </div>
 
-                    <aside className="space-y-6">
+                    {/* Right panel - collapsible on small screens */}
+                    <aside className={`space-y-6 transition-all ${panelOpen ? "block" : "hidden"} md:block`}>
                         <div className="glass rounded-2xl p-5 shadow-lg border border-white/10">
                             <h3 className="text-orange-700 font-semibold mb-3">Planets by House</h3>
                             <div className="grid grid-cols-3 gap-2">
@@ -191,9 +183,7 @@ export default function KundaliPage() {
                             {selectedHouse ? (
                                 <>
                                     <div className="text-sm mb-2">House <span className="font-semibold">{selectedHouse}</span></div>
-                                    <div className="text-sm text-gray-700 mb-3">
-                                        Planets: <span className="font-medium">{(planetsMap[selectedHouse] || []).join(", ") || "—"}</span>
-                                    </div>
+                                    <div className="text-sm text-gray-700 mb-3">Planets: <span className="font-medium">{(planetsMap[selectedHouse] || []).join(", ") || "—"}</span></div>
                                     <div className="text-xs text-gray-500">Tip: Click a house on the chart or here to inspect planets. For real data use a planetary API and update the chart mapping.</div>
                                     <div className="mt-3 flex gap-2">
                                         <button className="px-3 py-2 rounded-md bg-orange-500 text-white text-sm" onClick={() => alert("Open deeper reading (not implemented in demo).")}>Open Reading</button>
@@ -227,9 +217,6 @@ export default function KundaliPage() {
                 </div>
             </main>
 
-            <footer className="py-8 text-center text-sm text-gray-600">
-                &copy; 2025 AstroCare — Kundali demo (client-side).
-            </footer>
         </div>
     );
 }

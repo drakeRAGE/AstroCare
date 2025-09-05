@@ -17,7 +17,7 @@ const Navbar = () => {
                   </div>
 
                   <nav className="hidden md:flex items-center gap-8 text-orange-800 font-medium">
-                      <a href="#" className="hover:text-orange-600 transition">Home</a>
+                      <a href="/" className="hover:text-orange-600 transition">Home</a>
                       <a href="#features" className="hover:text-orange-600 transition">Discover</a>
                       <a href="#about" className="hover:text-orange-600 transition">About</a>
                       <a href="#contact" className="hover:text-orange-600 transition">Contact</a>
@@ -40,7 +40,7 @@ const Navbar = () => {
               {menuOpen && (
                   <div className="md:hidden px-6 pb-6 glass-strong shadow-inner">
                       <div className="flex flex-col gap-3 py-2">
-                          <a href="#" className="block py-2">Home</a>
+                          <a href="/" className="block py-2">Home</a>
                           <a href="#features" className="block py-2">Discover</a>
                           <a href="#about" className="block py-2">About</a>
                           <a href="#contact" className="block py-2">Contact</a>
