@@ -1,12 +1,44 @@
-# React + Vite
+# Discover Yourself - AI & Vedic Wisdom 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A demo prototype website that combines **AI** with **Vedic wisdom** to provide personalized horoscope insights in plain, friendly language.  
+Users can explore **Kundali**, **Kalchakra**, and horoscope predictions with actionable tips.
 
-Currently, two official plugins are available:
+<img width="1894" height="896" alt="image" src="https://github.com/user-attachments/assets/27ddc1ff-4dc6-448c-82b3-c2b95704aca4" />
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## ✨ Features
+- Simple & clean demo interface
+- Quick Kundali generation with dummy data
+- User-friendly form for entering details (name, DOB, time, place)
+- Fast results generated in seconds
+- Prototype only – real implementation will require accurate time zone & detailed calculations
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🚀 Demo Flow
+1. Enter basic details (name, DOB, time, place).
+2. Click **Generate Demo**.
+3. View a sample Kundali reading with insights.
+4. Reset to try again with random details.
+
+---
+
+## ⚠️ Note
+- This is **only a prototype/demo**.  
+- The results are based on dummy data for demonstration purposes.  
+- Accurate charts will require exact birth details and time zone handling in the full version.
+
+---
+
+## 📌 Tech Stack
+- React, Tailwind CSS
+- Framer Motion, Lucide react, others
+
+---
+
+## 💡 Future Scope
+- Real Kundali and horoscope generation using verified algorithms.
+- AI-powered explanation of astrological insights.
+- User authentication & saved profiles.
+- Full support for time zones and location-based accuracy.
